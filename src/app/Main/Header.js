@@ -5,17 +5,18 @@ import IconButton from 'material-ui/IconButton';
 import MoreVertIcon from 'material-ui/svg-icons/navigation/more-vert';
 import IconMenu from 'material-ui/IconMenu';
 import MenuItem from 'material-ui/MenuItem';
-import { ParseUser } from '../User';
+import { User } from '../User';
 
 
 class Header extends React.Component {
 
     logout = () => {
-        ParseUser.getSharedObject().logout(() => {
-            history().push('login');
-        }, () => {
-            console.log('Logout fail');
-        });
+		User.getSharedObject().logout().then(() => {
+			console.log("go login after logout");
+			history().replace("login");
+		}, () => {
+			console.log('Logout fail');
+		});
     }
 
     render() {

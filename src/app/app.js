@@ -8,8 +8,8 @@ import injectTapEventPlugin from 'react-tap-event-plugin';
 import cookie from 'react-cookie';
 import $ from 'jquery';
 import Main from './Main';
-import Login from './Login';
-import {ParseUser} from './User';
+import { Login, LoginProcess } from './Login';
+import { User } from './User';
 
 // Needed for onTouchTap
 // Can go away when react 1.0 release
@@ -19,14 +19,37 @@ injectTapEventPlugin();
 
 const appHistory = history();
 const muiTheme = getMuiTheme();
-const user = ParseUser.getSharedObject();
-user.appId = 'IvBZLAh4TFKfiG7vewerHgZpuWAjNMHowGSg2PMZ';
-user.apiKey = 'kJbBe3wvZnh75A1GThWK15M27QomYQZhWxdIDTFO';
+const user = User.getSharedObject();
 
 const checkLogin = () => {
-    if(!user.logged) {
-        appHistory.replace('login');
-    }
+	if(!user.logged) {
+		appHistory.replace('login');
+	}
+	return;
+
+	console.log("checkLogin", location.hash);
+    user.checkLogin();
+	return;
+
+    user.checkLogin().then((userInfo, token) => {
+		console.log("Success", userInfo, token, user.redirection);
+		if(!!user.redirection) {
+			console.log("Redirect to", user.redirection);
+			const href = user.redirection;
+			user.redirection = null;
+			location.href = href;
+		} else {
+			location.href = "/";
+		}
+	}, (errorMessage) => {
+		console.log("Error", errorMessage, location.hash);
+		if(location.hash != "#/login") {
+			user.redirection = location.href;
+			console.log("Redirect to login", user.redirection);
+			// appHistory.replace('login');
+			location.hash = "login";
+		}
+	});
 }
 
 /// Application component
@@ -57,6 +80,7 @@ ReactDOM.render(
         <Route path="/" component={App}>
             <IndexRoute component={Main} onEnter={checkLogin} />
             <Route path="login" component={Login} />
+            <Route path="loginProcess" component={LoginProcess} />
         </Route>
     </Router>,
     document.getElementById('app')
